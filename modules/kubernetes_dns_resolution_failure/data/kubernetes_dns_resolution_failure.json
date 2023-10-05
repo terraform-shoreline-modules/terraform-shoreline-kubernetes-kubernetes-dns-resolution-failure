@@ -1,0 +1,154 @@
+{
+  "name": "kubernetes_dns_resolution_failure",
+  "description": "DNS resolution failure is a common incident type that occurs when services are unable to resolve domain names into IP addresses, leading to communication failure. DNS (Domain Name System) is responsible for translating human-readable domain names into machine-readable IP addresses. When this translation fails, services are unable to communicate with each other, resulting in outages or performance degradation. This incident type can be caused by various factors such as misconfigured DNS settings, DNS server failures, network connectivity issues, or cyber attacks.",
+  "params": [
+    {
+      "name": "DNS_NAME",
+      "value": ""
+    },
+    {
+      "name": "DNS_SERVER_DEPLOYMENT_NAME",
+      "value": ""
+    },
+    {
+      "name": "DNS_SERVER_IP",
+      "value": ""
+    },
+    {
+      "name": "POD_NAME",
+      "value": ""
+    },
+    {
+      "name": "EXAMPLE_COM",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Kubernetes - DNS Resolution Failure\nDNS resolution failure is a common incident type that occurs when services are unable to resolve domain names into IP addresses, leading to communication failure. DNS (Domain Name System) is responsible for translating human-readable domain names into machine-readable IP addresses. When this translation fails, services are unable to communicate with each other, resulting in outages or performance degradation. This incident type can be caused by various factors such as misconfigured DNS settings, DNS server failures, network connectivity issues, or cyber attacks."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the kube-dns service is running"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl get svc kube-dns -n kube-system`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## View the logs of the kube-dns pod"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl logs ${POD_NAME} -n kube-system`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the DNS service IP is correctly set"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl get svc kube-dns -n kube-system -o jsonpath='{.spec.clusterIP}{\"\\n\"}'`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the DNS pod is running and ready"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl get pods -n kube-system -l k8s-app=kube-dns`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the DNS configuration is correct"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE | name=$POD_NAME | `cat /etc/resolv.conf`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the DNS server is reachable from the cluster"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | limit=1 | random=1 | `kubectl run -it --rm dnsutils --image=tutum/dnsutils --restart=Never -- nslookup ${DNS_NAME}`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the DNS resolution is working for a specific pod"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE | name=$POD_NAME | `nslookup ${DNS_NAME}`"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the DNS server configuration and ensure that it is configured correctly. Verify that the DNS server is operational and responding to queries."
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_verify_dns_config($DNS_SERVER_IP)"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Restart the DNS server to clear any cache or temporary issues."
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "pod | k8s_cluster_name=$K8S_CLUSTER_NAME | app='shoreline' | random=1 | limit=1 | invoke_dns_restart($DNS_SERVER_DEPLOYMENT_NAME)"
+    }
+  ]
+}
